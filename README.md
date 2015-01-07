@@ -1,5 +1,7 @@
 The Block and Nuke extension allows sysops to mass block spam accounts and delete all contributions made by those spam accounts, in just two clicks. See further documenatation at the [BlockandNuke page on MediaWiki.org](http://www.mediawiki.org/wiki/Extension:BlockandNuke).
 
+Minor edit for Library of Virginia use. Added function and filter to remove already blocked users from the main Block and Nuke page.
+
 Usage
 -----
 

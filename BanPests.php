@@ -18,6 +18,17 @@ class BanPests {
 		return (preg_split('/\r\n|\r|\n/', $file));
 	}
 
+	static function getBlockedUsers() {
+		$dbr = wfGetDB( DB_SLAVE );
+		$blockedresult = $dbr->select( 'ipblocks',
+			array( 'DISTINCT ipb_address' ) );
+		$blockednames=array();
+		while( $row = $dbr->fetchObject( $blockedresult ) ) {
+			$blockednames[] = $row->ipb_address;
+		}
+		return $blockednames;
+	}
+
 	static function getBannableUsers() {
 		$dbr = wfGetDB( DB_SLAVE );
 		$cond = array( 'rc_new' => 1 ); /* Anyone creating new pages */
@@ -40,10 +51,18 @@ class BanPests {
 		while( $row = $dbr->fetchObject( $result ) ) {
 			$names[] = $row->rc_user_text;
 		}
+		
 		$whitelist = array_flip( self::getWhitelist() );
-		return array_filter( $names,
+		$filteredArray = array_filter( $names,
 			function($u) use ($whitelist) { if( isset( $whitelist[ $u ] ) ) return false; return true; }
 		);
+		
+		$blockednames = array_flip( self::getBlockedUsers() );		
+		$filteredArray = array_filter( $names,
+			function($u) use ($blockednames) { if( isset( $blockednames[ $u ] ) ) return false; return true; }
+		);
+		
+		return $filteredArray;
 	}
 
 	static function getBannableIP( $user ) {
@@ -106,7 +125,7 @@ class BanPests {
 			if( !Block::newFromTarget( $ip ) ) {
 				$blk = new Block( $ip, null,
 					$banningUser->getID(), wfMsg('blockandnuke-message'),
-					wfTimestamp(), 0, Block::infinity(), 0, 1, 0, 0, 1);
+					wfTimestamp(), 0, wfGetDB( DB_SLAVE )->getInfinity(), 0, 1, 0, 0, 1);
 				$blk->isAutoBlocking( true );
 				if( $blk->insert() ) {
 					$log = new LogPage('block');
@@ -133,7 +152,7 @@ class BanPests {
 			if( !Block::newFromTarget( $user->getName() ) ) {
 				$blk = new Block($user->getName(), $user->getId(),
 					$banningUser->getID(), wfMsg('blockandnuke-message'),
-					wfTimestamp(), 0, Block::infinity(), 0, 1, 0, 0, 1);
+					wfTimestamp(), 0, wfGetDB( DB_SLAVE )->getInfinity(), 0, 1, 0, 0, 1);
 				$blk->isAutoBlocking( true );
 				if($ret = $blk->insert()) {
 					$log = new LogPage('block');
