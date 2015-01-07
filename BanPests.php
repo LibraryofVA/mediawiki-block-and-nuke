@@ -13,7 +13,7 @@ class BanPests {
 		}
 
 		$fh = fopen($wgBaNwhitelist, 'r');
-		$file = fread($fh,200);
+		$file = fread($fh,filesize($wgBaNwhitelist));
 		fclose($fh);
 		return (preg_split('/\r\n|\r|\n/', $file));
 	}
