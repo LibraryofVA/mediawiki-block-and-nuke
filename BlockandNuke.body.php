@@ -98,6 +98,11 @@ class SpecialBlock_Nuke extends SpecialPage {
 
 		$pages = BanPests::getBannablePages( $user );
 		$ips = BanPests::getBannableIP( $user );
+		foreach($ips as $key=>$ip) {
+			if($ip == "") {
+				$ips[$key] = $user[$key];
+			}
+		}
 
 		if( count( $pages ) ) {
 			$wgOut->addHTML( "<h2>". wfMsg( "blockandnuke-pages" ) ."</h2>" );
